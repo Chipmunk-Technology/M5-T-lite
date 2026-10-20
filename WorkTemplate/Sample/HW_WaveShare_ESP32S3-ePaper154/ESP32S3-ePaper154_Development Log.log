@@ -1,0 +1,472 @@
+# WaveShare ESP32-S3-ePaper-1.54 Development Log
+
+Purpose: append-only record of device research, experiments, failures,
+solutions, and verified behavior for future study.
+
+Status vocabulary:
+
+- DOCUMENTED: supported by product documentation or official examples, not yet
+  tested locally.
+- BUILD VERIFIED: local firmware compilation succeeded.
+- FLASH VERIFIED: firmware upload succeeded.
+- DEVICE VERIFIED: expected behavior observed on the physical device or via
+  reliable device output.
+- PARTIAL: useful progress, full verification incomplete.
+- FAILED: the attempted test did not work.
+
+Do not remove old entries. Add a later correction entry when knowledge changes.
+
+================================================================================
+2026-06-28 - Project bootstrap and specification set
+Status: DOCUMENTED
+================================================================================
+
+Goal:
+Create the specification set and the Make Spec method for the WaveShare
+ESP32-S3-ePaper-1.54, using the M5Stack Dial project in Sample/ as the reference
+structure. The device was NOT connected during this session.
+
+Findings (DOCUMENTED, from the official product page + datasheets,
+review date 2026-06-28):
+- MCU: ESP32-S3, dual-core Xtensa LX7 @ 240 MHz; 512 KB SRAM; 384 KB ROM.
+- Memory: 8 MB flash and 8 MB PSRAM (stacked).
+- Display: 1.54" e-paper, 200 x 200, black/white, microcapsule electrophoretic,
+  bistable; full refresh ~2 s, partial refresh ~0.3 s; SPI; ~180 deg viewing.
+- Wireless: 2.4 GHz Wi-Fi (802.11 b/g/n); Bluetooth 5 LE; internal antenna.
+- Sensors: SHTC3 temperature/humidity; PCF85063 RTC.
+- Audio: ES8311 codec, on-board microphone, speaker via MX1.25 2-pin connector.
+- Buttons: PWR (customizable) and BOOT (download mode).
+- Touch: FT6336 capacitive over I2C — TOUCH VARIANT ONLY.
+- Storage: micro-SD (FAT32).
+- Expansion: 2 x 6-pin headers (2.54 mm); GPIO, UART, I2C.
+- USB: Type-C (ESP32-S3). Power: 3.7 V Li-battery (MX1.25), onboard charge/
+  discharge management.
+- This board has NO rotary encoder and NO RFID (unlike the M5Stack Dial).
+- Exact physical dimensions and the pre-installed factory demo were not captured
+  from the product page; confirm from the WaveShare wiki and from the device.
+
+Open questions to resolve once the device is connected:
+- Touch vs non-touch variant of the unit in hand.
+- Confirm flash size via `esptool flash_id` (documented 8 MB).
+- Device MAC.
+- Identity/behavior of the pre-installed factory firmware.
+
+Local references created:
+- Project instruction.md
+- Make Spec.md
+- ESP32S3-ePaper154_Functional Specification.md
+- ESP32S3-ePaper154_AI_Specification.md
+- ESP32S3-ePaper154_ClaudeDesign_Specification.md
+- ESP32S3-ePaper154_Development Log.log (this file)
+- NextSteps.md
+- backup/README.md
+- backup/backup_device.sh
+
+Primary official references:
+- https://www.waveshare.net/shop/ESP32-S3-ePaper-1.54.htm
+- https://www.waveshare.net/wiki/
+- https://www.espressif.com/documentation/esp32-s3_datasheet_en.pdf
+
+================================================================================
+2026-06-28 - Backup tooling prepared; full-flash backup PENDING
+Status: PARTIAL
+================================================================================
+
+Goal:
+Make a complete full-flash backup of the factory firmware as the basic first
+step, before any flashing or erasing.
+
+Environment:
+- Host: macOS (Darwin 25.5.0), Apple Silicon.
+- Tool: esptool installed via `python3 -m pip install --user esptool`.
+- esptool version: v4.11.0 (confirmed: `python3 -m esptool version`).
+- Backup script: backup/backup_device.sh (non-destructive full-flash read).
+
+Observed result:
+- USB serial port check (`ls /dev/cu.*`) found NO usbmodem/usbserial/wch/SLAB
+  device. The device is not plugged in.
+- Backup therefore NOT taken. Tooling is installed and the script is ready.
+
+Diagnosis:
+- Device not connected to USB. No action possible until it is plugged in with a
+  USB-C data cable.
+
+Solution / next action:
+- When connected: run `backup/backup_device.sh`, then verify with
+  `shasum -a 256 -c backup/SHA256SUMS`. Record the chip id, MAC, and confirmed
+  flash size from the generated info file into the AI specification.
+
+Limitations/follow-up:
+- Do not flash or erase the device until the verified full-flash backup exists.
+- Back up any micro-SD card contents separately (copy files from the card).
+
+================================================================================
+2026-06-29 - Reference docs recorded; V1 vs V2 memory difference found
+Status: DOCUMENTED
+================================================================================
+
+Goal:
+Record the official documentation/wiki references for this product, and capture
+which variant/version distinctions matter (user unsure which unit is in hand).
+
+Primary reference pages (review date 2026-06-29):
+- Official docs (covers all four SKUs + V1/V2):
+  https://docs.waveshare.net/ESP32-S3-ePaper-1.54/?variant=ESP32-S3-Touch-ePaper-1.54
+- Wiki (V2, non-touch):
+  https://www.waveshare.net/wiki/ESP32-S3-ePaper-1.54-V2
+
+Findings:
+- The product line has FOUR SKUs:
+  - ESP32-S3-ePaper-1.54        (non-touch, with battery)
+  - ESP32-S3-ePaper-1.54-EN     (non-touch, no battery)
+  - ESP32-S3-Touch-ePaper-1.54  (capacitive touch, with battery)
+  - ESP32-S3-Touch-ePaper-1.54-EN (capacitive touch, no battery)
+- There are TWO hardware versions, distinguishable by PCB markings:
+  - V1: 4 MB Flash / 2 MB PSRAM
+  - V2: 8 MB Flash / 8 MB PSRAM, improved power efficiency
+- CORRECTION to the 2026-06-28 entry: the "8 MB flash + 8 MB PSRAM" figure is
+  specific to V2. A V1 unit has 4 MB / 2 MB. Until the device is read, treat
+  flash/PSRAM size as version-dependent and confirm with `esptool flash_id`.
+- All SKUs share the core architecture: ESP32-S3 LX7 @ 240 MHz, 1.54" 200x200
+  e-paper, 2.4 GHz Wi-Fi, BLE 5, ES8311 audio + mic + speaker, SHTC3, PCF85063,
+  micro-SD, PWR/BOOT buttons, USB-C, 2x6 expansion headers.
+- The wiki/docs link resources to verify later: schematic PDF, Arduino + ESP-IDF
+  demo code, datasheets (ESP32-S3, PCF85063, SHTC3, e-paper), and LVGL
+  (v8.3.11 / v9.3.0) for the touch variant UI.
+
+Open questions to resolve from the device (still pending USB connection):
+- Touch vs non-touch SKU.
+- Battery vs -EN (no battery) SKU.
+- V1 vs V2 (PCB marking; confirm flash/PSRAM via esptool flash_id).
+- Device MAC and factory firmware behavior.
+
+================================================================================
+2026-06-29 - Device connected, identified, and full-flash backup taken
+Status: DEVICE VERIFIED
+================================================================================
+
+Goal:
+Connect the device over USB and take the complete full-flash backup (the basic
+first step) before any modification.
+
+Connection notes:
+- The link was intermittent at first: the board would enumerate then drop. Root
+  cause was a marginal USB-C connection (originally through a hub / Type-C AV
+  adapter; flaky physical contact). Removing the hub and reseating a data cable
+  produced a usable port. A background watcher caught /dev/cu.usbmodem1101.
+- The ESP32-S3 native USB enumerates as "USB JTAG/serial debug unit"; when macOS
+  shows it !matched with no /dev node, reseat/retry until a usbmodem node binds.
+  No driver install was needed once the data link was solid.
+
+Device identification (read by esptool v4.11.0, DEVICE VERIFIED):
+- Chip: ESP32-S3-PICO-1 (LGA56), revision v0.2
+- Features: WiFi, BLE, Embedded Flash 8MB (GigaDevice), Embedded PSRAM 8MB (AP_3v3)
+- USB mode: USB-Serial/JTAG (baud setting ignored; runs at USB speed)
+- MAC: ac:27:6e:d2:07:28
+- Flash: manufacturer c8 (GigaDevice), device 4017, 8 MB; eFuse quad (QIO), 3.3 V
+- Crystal: 40 MHz
+=> This unit is a V2 board (8 MB flash / 8 MB PSRAM). V1-vs-V2 question RESOLVED.
+   Touch-vs-non-touch and battery-vs-EN are not determinable from the flash read
+   and still need visual confirmation.
+
+Commands:
+- Detect: python3 -m esptool --port /dev/cu.usbmodem1101 flash_id
+- Backup: python3 -m esptool --port /dev/cu.usbmodem1101 --baud 921600 \
+    read_flash 0 0x800000 esp32s3-epaper154-full-flash-2026-06-29.bin
+
+Observed result:
+- Read completed 8388608/8388608 bytes (100 %), one shot, no errors.
+- File: backup/esp32s3-epaper154-full-flash-2026-06-29.bin (8,388,608 bytes).
+- Sanity: first bytes "e9 04 02 2f" — e9 is the ESP image magic, so a real
+  bootloader/firmware is present. ~1,542,851 non-0xFF/0x00 bytes of real content;
+  remainder is erased flash (normal).
+- SHA-256: 1be2d5337dd6a58340a9426120c54bf0465424dbb80c0a3b5bbe43c3c5028e9f
+- Verified: `shasum -a 256 -c backup/SHA256SUMS` => OK.
+- Info file: backup/esp32s3-epaper154-backup-info-2026-06-29.txt
+
+Read flash is non-destructive; the device firmware was not modified.
+
+Limitations/follow-up:
+- Backup is complete and verified. It is now safe to flash test firmware,
+  preserving this image for recovery (write_flash 0 <bin> to restore).
+- Still to confirm visually: touch vs non-touch, battery vs -EN.
+- If a micro-SD card is inserted, back up its files separately.
+- The USB-C link is physically marginal; keep the cable still during flashing.
+
+================================================================================
+2026-06-29 - Factory firmware identified from the backup (default-app specs)
+Status: PARTIAL
+================================================================================
+
+Goal:
+Read what is on the device (the pre-installed factory firmware) and document it
+like the Sample default-app specs, without modifying the device.
+
+Method:
+- Analyzed the verified full-flash backup only (non-destructive): parsed the
+  partition table at 0x8000, read the ESP-IDF app descriptor (magic 0xABCD5432)
+  in the factory partition, and ran string/symbol fingerprinting on the carved
+  app image. The device was not connected for this step; no serial trace yet.
+
+Verified identity (from the app descriptor):
+- project_name: 02_ePaper_1_54_Test
+- board string: S3_ePaper_1_54 ("Board: S3_ePaper_1_54")
+- app version: 1; build: Jan  4 2026 19:23:28; ESP-IDF v5.4.3
+- vendor string: waveshare.com; image magic 0xE9 valid
+
+Verified partition layout:
+- nvs       data/nvs  0x09000 0x06000 (24K)
+- phy_init  data/phy  0x0F000 0x01000 (4K)
+- factory   app       0x10000 0x3F0000 (~4M)
+- Single app (no OTA). No FAT/SPIFFS/LittleFS data partition. Upper 4 MB of the
+  8 MB flash is unpartitioned (this layout also fits a 4 MB V1 board).
+
+Subsystems linked/initialized (string+symbol evidence):
+- e-paper/EPD via LVGL (sdcard_lvgl_task present)
+- SHTC3 (temp/humidity), PCF85063 (RTC)
+- ES8311 audio codec (es8311_codec_new, CODEC_INIT, I2C+I2S, mic/speaker)
+- micro-SD: sdmmc/sdspi, mounts /sdcard, test file /sdcard/sdcard.txt
+- Wi-Fi 2.4 GHz; esp_http client/server symbols present
+- BLE via Bluedroid: GATTC_DEMO + RF test fns (BTM_BleTransmitterTest/
+  BTM_BleReceiverTest/BTM_BleScan)
+- ADC (battery), USB-Serial/JTAG console
+- No Chinese UI strings found; labels appear to be ASCII.
+
+Conclusion:
+- This is WaveShare's factory hardware bring-up / self-test demo, not a finished
+  product. Documented in:
+  - Factory ESP32S3-ePaper154_App_Functional Specificaton.md
+  - Factory ESP32S3-ePaper154_App_Programming Specificaton (AI).md
+
+Limitations/follow-up (to promote from PARTIAL to DEVICE VERIFIED):
+- Capture the serial boot log (115200) to confirm the real test order and any
+  pass/fail output.
+- Observe and record the e-paper screens.
+- Confirm touch SKU (FT6336 @ I2C 0x38) and whether Wi-Fi actually connects.
+- For an exact rebuild, fetch WaveShare's demo source from the product wiki.
+
+================================================================================
+2026-06-29 - Custom app: ABC touch-toggle e-paper firmware
+Status: DEVICE VERIFIED
+================================================================================
+
+Goal:
+Add an interface: tap the e-paper -> show big "ABC"; tap again -> original page.
+
+Design decisions (evidence-based):
+- Framework = Arduino-ESP32 3.x. Reason: WaveShare's FT6336 touch driver uses the
+  new driver/i2c_master.h API (ESP-IDF 5.2+). The locally installed ESP-IDF is
+  v5.1.3 (too old for that API), and no Arduino core was installed. Arduino-ESP32
+  3.x ships the right I2C API and is WaveShare's documented path for this board.
+- Reused WaveShare's own, tested board drivers (correct pins guaranteed), copied
+  unmodified from github.com/waveshareteam/ESP32-S3-ePaper-1.54 examples
+  09_LVGL_V8_Test (epaper_driver_bsp, board_power_bsp) and 12_FT6336_Test
+  (ft6336_bsp, i2c_bsp, user_config.h).
+- No LVGL/font dependency: embedded a 5x7 font scaled up for big "ABC".
+- Full refresh per toggle (clean, ~2 s) instead of partial (avoids ghosting).
+
+Confirmed pin map (from WaveShare user_config.h):
+- EPD: DC=10 CS=11 SCK=12 MOSI=13 RST=9 BUSY=8 PWR=6
+- I2C: SDA=47 SCL=48 (FT6336 0x38, RTC 0x51, SHTC3 0x70); touch INT=21 RST=7
+- Buttons: BOOT=0 PWR=18
+
+Implementation notes (from reading the driver source):
+- e-paper buffer is 1bpp, 200x200 = 5000 bytes; pixel index = y*25 + (x>>3),
+  bit = 7-(x&7); WHITE sets the bit, BLACK clears it.
+- EPD_Clear() memsets buffer to white; EPD_Display() flushes (full refresh).
+- Driver allocates its buffer in PSRAM (MALLOC_CAP_SPIRAM) -> the Arduino build
+  MUST enable PSRAM (OPI) or it asserts at boot.
+- Touch read: ft6336->GetTouchPoint(&x,&y) returns nonzero when touched; the app
+  toggles on the rising edge (one tap = one toggle), polled at ~20 Hz.
+
+Files: firmware/ABC_Touch_Toggle/ (ABC_Touch_Toggle.ino + README + copied BSPs).
+
+Build/flash contract (Arduino-ESP32 3.x):
+- FQBN: esp32:esp32:esp32s3:PSRAM=opi,FlashSize=8M,USBMode=hwcdc,CDCOnBoot=cdc,
+  PartitionScheme=default_8MB
+- arduino-cli compile/upload; port /dev/cu.usbmodem* (detect each time).
+
+Status/limitations:
+- Recovery: factory image preserved at
+  backup/esp32s3-epaper154-full-flash-2026-06-29.bin.
+
+Build/flash results (2026-06-29):
+- BUILD VERIFIED: arduino-cli compile OK. Sketch 355268 B (10% of 3.34 MB app
+  partition); globals 22956 B (7% RAM). esp32 core 3.3.10, FQBN
+  esp32:esp32:esp32s3:PSRAM=opi,FlashSize=8M,USBMode=hwcdc,CDCOnBoot=cdc,
+  PartitionScheme=default_8MB.
+- FLASH VERIFIED: arduino-cli upload to /dev/cu.usbmodem11201; esptool "Hash of
+  data verified", hard reset into the app. This replaced the factory firmware.
+- USB port stayed stable across two 120 s monitors -> app is NOT crash-looping
+  (a PSRAM/boot crash would re-enumerate repeatedly). PSRAM=opi is correct for
+  the N8R8 module (8 MB octal). So the app booted and should display.
+- Serial console: no bytes captured over the native USB-Serial/JTAG CDC (even
+  after an RTS reset pulse with DTR asserted). Likely an HWCDC capture quirk, not
+  an app fault. Device-VISUAL confirmation (screen + tap) still pending the user's
+  report; touch SKU still to be confirmed that way.
+- TODO if touch is dead on-screen: rebuild with the PWR/BOOT button as the toggle
+  input (touch_bsp absent on a non-touch unit would also explain no reaction).
+
+UPDATE (2026-06-29): home screen + ABC (user clarified they wanted the original
+display retained, not replaced by a bare page; one firmware runs at a time, so
+the "home" display is built into the same app).
+- v2 of the app: home screen shows LIVE temperature + humidity (SHTC3 @0x70) and
+  time (PCF85063 RTC @0x51, seeded to 12:00 since no NTP), refreshed ~once/min;
+  tap -> big ABC; tap -> home. SHTC3/RTC are read directly on the existing
+  I2cMasterBus (SDA47/SCL48) to avoid pulling WaveShare's conflicting C-style
+  i2c_bsp/SensorLib. Font extended with digits and symbols.
+- BUILD VERIFIED (356708 B, 10%); FLASH VERIFIED to /dev/cu.usbmodem11201
+  (hash verified). Device-visual confirmation of the home screen pending user.
+
+Original v1 (DEVICE VERIFIED 2026-06-29, user-observed):
+- The e-paper showed a static page ("TAP / SCREEN / SHOWS / ABC"); tapping
+  toggled to a large "ABC" and back. Confirmed touch SKU works.
+
+================================================================================
+2026-06-29 - BLE-connected e-paper + iOS companion app
+Status: BUILD VERIFIED / FLASH VERIFIED (firmware); iOS code complete (Xcode build by user)
+================================================================================
+
+Goal:
+iOS app that connects over BLE to (1) read temp/humidity/time, set the clock,
+rename the BLE device, view/set Wi-Fi; and (2) upload a photo that replaces the
+on-device picture (app converts to the e-paper size/format).
+
+Firmware (firmware/ePaper_BLE/, evolved from ABC_Touch_Toggle):
+- Arduino-ESP32 3.x BLEDevice GATT server + WiFi + Preferences(NVS), plus the
+  existing e-paper/touch/SHTC3/PCF85063 code.
+- Info service f0a00000-...: temp/humidity (read+notify), time (read+write -> sets
+  RTC), BLE name (read+write -> persists to NVS and reboots to re-advertise),
+  wifi SSID/pass (write, NVS), wifiCtrl (write "scan"/"connect"), wifiStatus
+  (read+notify). Wi-Fi scan/connect are DEFERRED to loop() (not run in the BLE
+  callback) to avoid blocking the BLE stack.
+- Image service f0b00000-...: imgCtrl ("START"/"COMMIT"/"CLEAR"), imgData
+  (write-no-response, sequential chunks), imgStat (notify). On COMMIT the 5000-
+  byte 1bpp image is stored in NVS and rendered. Format: 200x200, 25 bytes/row,
+  MSB=leftmost, bit 1=WHITE 0=BLACK (matches the driver buffer).
+- Home screen = temp/humidity/time; tap toggles to the uploaded picture (or "ABC"
+  if none). MTU requested 517.
+- BUILD VERIFIED: 1175429 B (35% of 3.34 MB app), globals 52300 B (15% RAM).
+  FLASH VERIFIED to /dev/cu.usbmodem11201 (hash verified). Advertises 'ePaper-154'.
+- Device-level BLE behavior to be confirmed by the user via the app / nRF Connect.
+
+iOS app (ios/ePaperBLE/, SwiftUI + CoreBluetooth, iOS 17+):
+- BLEManager (scan/connect/discover/notify/write, paced write-without-response
+  chunk upload via canSendWriteWithoutResponse + peripheralIsReadyToSend...).
+- ImageConverter (resize to 200x200 aspect-fill, grayscale, Floyd-Steinberg
+  dither, pack to the firmware's exact byte layout; live preview).
+- InfoTabView, ImageTabView, ePaperBLEApp (TabView). UUIDs match the firmware.
+- Build steps + Info.plist (NSBluetoothAlwaysUsageDescription) in ios/README.md.
+
+iOS app BUILD VERIFIED (2026-06-29):
+- Generated a real Xcode project with XcodeGen (ios/project.yml ->
+  ios/ePaperBLE.xcodeproj). Full Xcode 26.5 + iOS SDK + simulators are installed.
+- xcodebuild for the iPhone simulator: ** BUILD SUCCEEDED ** (all 5 Swift files).
+- Installed + launched in the iPhone 17 Pro simulator; UI renders correctly
+  (Device tab: connection/sensors/name/wifi; Picture tab present). Simulator
+  shows "Bluetooth unavailable" (no BT radio) - real BLE needs a physical iPhone.
+- Derived data removed; project + sources + project.yml kept. To run on hardware:
+  open ePaperBLE.xcodeproj, set a signing Team, run on an iPhone (see ios/README).
+
+iOS app INSTALLED ON DEVICE (2026-06-29, via Xcode GUI / computer-use):
+- Headless xcodebuild could not sign (the automated context can't access the
+  user's Xcode account session/keychain; "No Account for Team"). The hardcoded
+  cert-derived team IDs (7WB42P34GM / 88S2AFW5YW) were not the account's real
+  teams either.
+- Drove the Xcode GUI: Signing & Capabilities -> Team = "Ka Hing Poon (Personal
+  Team)" (vkhpoon@gmail.com). Xcode auto-created the managed provisioning profile
+  + Apple Development cert; all signing errors cleared. Clicked Run.
+- Result: BUILD + sign + install + launch on the iPhone "VPX24" (iPhone 13 Pro
+  Max); status "Finished running ePaperBLE on VPX24", no errors. App "ePaper BLE"
+  is on the device.
+- Note: bundle id com.victorp.ePaperBLE, Personal Team (free, 7-day signing). If
+  opening from the home screen shows "Untrusted Developer", trust it under
+  Settings > General > VPN & Device Management.
+- This confirms, on hardware: e-paper full refresh + PSRAM(OPI) buffer + the
+  embedded font rendering + FT6336 capacitive touch + the tap-toggle logic.
+- => This unit IS the TOUCH variant (FT6336 present and working). Resolves the
+  open touch-vs-non-touch SKU question.
+- The serial console silence was therefore only a host-side HWCDC capture quirk,
+  not an app fault.
+
+================================================================================
+2026-06-29 - Battery power-hold required (device died on USB unplug)
+Status: ROOT-CAUSED + fix coded (reflash/device-verify pending)
+================================================================================
+
+Symptom (user, with a LiPo battery attached to the MX1.25 connector):
+- With the factory firmware, the e-paper kept showing its image after USB was
+  unplugged. With my custom firmware, unplugging USB made the device go fully
+  dead - not even a static e-paper image.
+
+Root cause (high confidence, from reading board_power_bsp.cpp):
+- This board uses a battery POWER-HOLD LATCH on VBAT_PWR_PIN = GPIO17.
+  VBAT_POWER_ON() drives GPIO17 HIGH = keep the system powered from the battery;
+  VBAT_POWER_OFF() drives it LOW = release (power off on battery).
+- While USB is connected the board is powered via USB regardless, so the bug is
+  invisible on USB. The instant USB is removed, if GPIO17 is not HIGH the battery
+  path is not latched -> the whole board loses power immediately. The abrupt cut
+  also prevents the e-paper from latching a clean static image (so: no image AND
+  no function).
+- The factory firmware asserts the power-hold, which is why IT survived unplug.
+- My custom firmwares (ABC_Touch_Toggle and ePaper_BLE) called POWEER_EPD_ON()
+  but never VBAT_POWER_ON(), so they died on unplug. This is the regression.
+
+Power-pin polarity reference (from board_power_bsp.cpp):
+- EPD_PWR (GPIO6):  active-LOW  -> POWEER_EPD_ON() sets it 0
+- Audio_PWR (GPIO42): active-LOW -> POWEER_Audio_ON() sets it 0
+- VBAT_PWR (GPIO17): active-HIGH -> VBAT_POWER_ON() sets it 1  (battery hold)
+
+Fix:
+- Call board_power.VBAT_POWER_ON() as the FIRST line of setup() (before anything
+  else) so the board latches battery power immediately at boot. Applied to
+  firmware/ePaper_BLE/ePaper_BLE.ino; BUILD VERIFIED (1175453 B). Reflash pending
+  the device being reconnected to USB; then verify: unplug USB -> stays running.
+- TODO: apply the same one-liner to firmware/ABC_Touch_Toggle/ for parity.
+
+Note on e-paper retention (secondary): the panel is bistable and holds a
+FULLY-refreshed image with no power, but cutting power mid-refresh or while the
+controller is active can prevent a clean latch. The driver exposes no deep-sleep
+(0x10) command. With the power-hold fix the board simply stays powered on
+battery, so this is moot for normal use; an explicit EPD deep-sleep remains an
+optional robustness improvement if true power-off retention is ever needed.
+
+================================================================================
+2026-06-29 - Battery life: always-on firmware drains in hours (DEVICE OBSERVED)
+================================================================================
+
+- User running the ePaper_BLE firmware on battery: it drained to 0% within hours
+  (e-paper froze on its last frame, e.g. "02:01 BAT 00%", when the chip lost
+  power). The home screen now shows battery % (ADC GPIO4) + BT/Wi-Fi status.
+- Cause: the firmware is not power-optimized. It never sleeps (loop polls touch
+  every 40 ms), and BLE ADVERTISES CONTINUOUSLY even when the screen shows
+  "BT:OFF" (that label means "no client connected", not "radio off"). Estimated
+  active draw ~40-70 mA on a ~200-500 mAh LiPo => ~3-8 h.
+- Low-power path: e-paper holds its image at 0 power, so "draw -> deep sleep ->
+  wake on timer/touch/button -> redraw" yields ~10-50 uA sleep => weeks-months.
+  Deep sleep and always-advertising BLE are mutually exclusive.
+- Action: added a standing rule to the specs (AI/Functional/ClaudeDesign/Make
+  Spec) to ASK the user their target battery life and recommend a power mode
+  before building battery firmware. Implementing a low-power mode is offered as
+  the next step (not yet built; current firmware remains always-on).
+
+================================================================================
+2026-06-29 - On-demand BLE (tap to enable, 3-min auto-off)
+Status: FLASH VERIFIED (uploaded /dev/cu.usbmodem1101, hash verified)
+================================================================================
+
+Change to firmware/ePaper_BLE (per user, to cut the BLE drain):
+- BLE no longer advertises continuously. It is OFF by default; a screen TAP calls
+  startAdv() (advertise + arm a 3-minute window). If nobody connects within 3 min
+  it stops advertising; on disconnect it also stops (no auto-re-advertise). The
+  BLE stack stays initialized so re-enabling is instant; "off" = not advertising/
+  not discoverable (the main radio drain), not a full controller power-down.
+- Tap keeps its existing job (toggle home<->picture) AND now (re)opens the BLE
+  window; while connected a tap just toggles the screen.
+- Home status row BT field is now 3-state: OFF / ADV (advertising) / ON
+  (connected). Added font glyphs D and V for "ADV".
+- Everything else unchanged (sensors, time, battery %, Wi-Fi, image upload).
+- BUILD VERIFIED (1186365 B, 35%). Reflash pending the device on USB.
+- Note: this is NOT deep sleep — the CPU is still always awake; it removes the
+  continuous BLE advertising. The full weeks-per-charge design is the separate
+  "Idea - periodic update.md" concept.

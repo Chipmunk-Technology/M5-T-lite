@@ -1,0 +1,93 @@
+================================================================================
+2026-10-20 16:20 - Specification set for 熱記憶, from published sources
+Status: DOCUMENTED
+================================================================================
+
+Goal:
+為尚未接上的 M5Stack T-Lite（SKU K126）寫下熱記憶工作站的規格。第一版三項：熱記憶、漏熱與隱藏水管、熱哨兵。不刷機，不寫應用程式。
+
+Acceptance criteria:
+- 規格套件存在，且三份規格對解析度、視角、精度條件、USB 路徑與禁令一致。
+- 硬體句子能指回 T-Lite 產品頁、StickC-Plus 接腳頁或 MLX90640 資料手冊。
+- 備份腳本就位，文件寫明備份尚未執行。
+- 沒有把設計中的幀格式、門檻或蜂鳴行為標成 DEVICE VERIFIED。
+
+Environment:
+- Framework and version: 無。此步沒有編譯。
+- Board/platform: 文件中的 T-Lite，ESP32-PICO-D4，MLX90640-BAA。裝置未連接。
+- Libraries: 無。
+- Firmware source: 官方倉庫 m5stack/M5StickC-Plus-TLite-FW 只作對照，未建置、未上傳。platform 文件為 espressif32 6.12.0，韌體版號字串 0.0.15（2026-10-20 讀到的 platformio.ini）。
+- Serial port: 無。
+- Required equipment/software: 無。
+
+Commands:
+- Build: 無。
+- Flash: 無。
+- Monitor/test: 無。
+
+Observed result:
+寫出 Project instruction、Make Spec、Functional、AI、Claude Design、NextSteps、backup/README、backup/backup_device.sh。
+沒有讀到 flash，沒有 MAC，沒有埠名。
+
+Failures/errors:
+無裝置，所以沒有裝置端錯誤。此狀態是預期的。
+
+Diagnosis:
+工作區在這一天只有 WorkTemplate。T-Lite 本體不在線上。
+
+Solution:
+規格全部標 DOCUMENTED。熱哨兵的門檻、冷卻時間、幀二進位格式寫成待測的設計合約，不寫成已觀察行為。Factory 規格延到備份之後。
+
+Verification:
+文件交叉檢查，尚未有實機。證據等級維持 DOCUMENTED。
+
+Limitations/follow-up:
+- 接上裝置後先跑 backup/backup_device.sh，核對 SHA-256。
+- 電池容量：T-Lite 產品頁寫 160 mAh，StickC-Plus 產品頁寫 120 mAh。這台是哪一個，等拆讀或實測。
+- USB 橋接晶片等埠出現再記。文件要求的驅動是 FTDI VCP。
+- Plus 與 Plus SE 官方韌體同一映像；Plus SE 沒有 IMU。第一版不依賴 IMU。
+- 棋盤模式下，完整畫面率約為暫存器刷新率的一半。熱記憶與熱哨兵要用的那一檔，等實測雜訊再定生死。
+
+================================================================================
+2026-10-20 16:25 - Full-flash backup attempt
+Status: FAILED
+================================================================================
+
+Goal:
+使用者已將 T-Lite 以資料線接上電腦。執行 backup/backup_device.sh，取得全閃存映像並核對 SHA-256。不刷寫。
+
+Acceptance criteria:
+- /dev/cu.usbserial*、wchusbserial 或 usbmodem 出現
+- esptool flash-id 顯示 ESP32、約 4 MB
+- 映像寫入 backup/，shasum -a 256 -c SHA256SUMS 通過
+
+Environment:
+- macOS Darwin 25.5.0
+- esptool：系統 python3 沒有 esptool 模組；Arduino15 與 PlatformIO 路徑下也沒有 esptool
+- Serial port: 無
+- Required equipment/software: USB-C 資料線、已接上的 T-Lite
+
+Commands:
+- ls /dev/cu.*
+- ioreg -p IOUSB -l
+
+Observed result:
+序列埠只有 Bluetooth-Incoming-Port、OHR524、debug-console。
+USB 樹上有 Apple 集線器、WCH USB2.0 HUB、Telink 無線接收器、2.4G Wireless Device、wch.cn「USB 10/100 LAN」、讀卡機、Asmedia ASM236X。沒有 M5Stack、FTDI 或 CH9102 序列裝置。
+backup_device.sh 沒有執行，因為沒有埠。沒有映像檔。
+
+Failures/errors:
+沒有可供 esptool 開啟的序列埠。
+
+Diagnosis:
+電腦沒有列舉到 T-Lite。可能是僅充電的線、裝置沒有開機（螢幕未亮），或線接在未把裝置送進來的埠上。WCH 那台是有線網卡，不是 T-Lite。
+
+Solution:
+未改裝置。等待螢幕亮起且序列埠出現後再備份。
+
+Verification:
+未備份。證據等級維持：備份未做。
+
+Limitations/follow-up:
+請短按側邊電源鍵，確認 1.14 吋螢幕亮起，並用會傳資料的 USB-C 線直插這台 Mac。完成後再跑備份。
+

@@ -1,0 +1,9 @@
+.DS_Store
+**/.DS_Store
+**/ios/build/
+**/node_modules/
+**/.pio/
+.env
+.env.*
+*.pem
+*credentials*

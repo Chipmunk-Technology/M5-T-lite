@@ -1,0 +1,32 @@
+esptool v5.3.0
+Serial port /dev/cu.usbserial-81524AF84F:
+Connecting....
+Detecting chip type... ESP32
+Connected to ESP32 on /dev/cu.usbserial-81524AF84F:
+Chip type:          ESP32-PICO-D4 (revision v1.1)
+Features:           Wi-Fi, BT, Dual Core + LP Core, 240MHz, Embedded Flash, Vref calibration in eFuse, Coding Scheme None
+Crystal frequency:  40MHz
+MAC:                c8:85:41:68:92:14
+
+Uploading stub flasher...
+Running stub flasher...
+Stub flasher running.
+
+Flash Memory Information:
+=========================
+Manufacturer: 46
+Device: 4016
+Detected flash size: 4MB
+Flash voltage set by a strapping pin: 3.3V
+
+Hard resetting via RTS pin...
+
+backup_file: atom-matrix-full-flash-2026-09-24.bin
+flash_bytes: 4194304
+port_used: /dev/cu.usbserial-81524AF84F
+date: 2026-09-24
+read_baud: 115200
+sha256: 60987a9476bde5297ebd231649100452e1b0906d6460eb7c8fa959f88e041c57
+note: 460800 baud failed (invalid packet head). Good read is 115200.
+note: USB product M5stack, vendor Hades2001, idVendor 1027 (FTDI).
+note: Direct plug enumerated. A USB hub did not.
