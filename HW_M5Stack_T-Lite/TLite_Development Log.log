@@ -91,3 +91,91 @@ Verification:
 Limitations/follow-up:
 請短按側邊電源鍵，確認 1.14 吋螢幕亮起，並用會傳資料的 USB-C 線直插這台 Mac。完成後再跑備份。
 
+================================================================================
+2026-10-20 17:49 - Full-flash backup on this Windows PC
+Status: DEVICE VERIFIED
+================================================================================
+
+Goal:
+在不擦除、不改寫的前提下，把這台 T-Lite 的 4 MB 閃存讀下來，並核對 SHA-256。
+
+Acceptance criteria:
+- esptool flash-id 讀到 ESP32、約 4 MB
+- 映像長度 4194304
+- SHA-256 寫入 backup/SHA256SUMS
+
+Environment:
+- Windows 10
+- esptool 5.6.0（本機可攜 Python 3.12.10）
+- Serial port: COM5
+- USB: FTDI FT232，VID 0403，PID 6001，序號 655263BD4B
+
+Commands:
+- esptool --port COM5 --baud 115200 flash-id
+- esptool --port COM5 --baud 115200 read-flash 0x00000000 0x400000 backup/t-lite-full-flash-2026-10-20.bin
+
+Observed result:
+晶片 ESP32-PICO-D4 revision v1.1。MAC c8:85:41:68:87:70。晶振 40 MHz。閃存廠商 46、裝置 4016、4 MB、3.3 V。映像 4194304 位元組。SHA-256 8586ab1fdf1f7752cd18bbacd6175ba39580b92f6ac4bf1daef4102c1d66e49c。讀完後以 RTS 硬重置。沒有寫入，沒有擦除，沒有動 eFuse。
+
+Failures/errors:
+無。稍早在另一台 Mac 上的備份嘗試仍是失敗，見上一則。
+
+Diagnosis:
+這台 Windows 列舉到 FTDI 虛擬序列埠。Mac 那次沒有列舉到裝置。
+
+Solution:
+備份留在 backup/。雜湊檔是單行、檔名以兩個空白分隔。
+
+Verification:
+映像長度與 SHA-256 已核對。證據等級：晶片身分與映像雜湊為 DEVICE VERIFIED。分割表與應用程式內容是從這份映像讀出的結構，不是執行行為。
+
+Limitations/follow-up:
+- NVS 可能有出廠設定，不把內容抄進共用文件。
+- 出廠應用的 Factory 規格還沒另寫。
+- 讀閃存用 115200。工作站連線速率 460800 還沒在這台跑過。
+
+================================================================================
+2026-10-20 18:28 - Workstation firmware and local page
+Status: BUILD VERIFIED
+================================================================================
+
+Goal:
+把熱記憶、漏熱、熱哨兵的網頁與對應韌體做成可編譯、可在本機瀏覽器操作的一套。熱哨兵的判斷與蜂鳴在裝置上。句子與報告在電腦上。
+
+Acceptance criteria:
+- pio run -e tlite 通過，且應用程式放得進備份裡那塊 3 MB 的 app0
+- 小螢幕能排中文句子（efontCN_14 有連進映像）
+- 橋接的幀格式、句子、漏熱、守候與記住，單元測試通過
+- 示範網頁在 127.0.0.1:8765，並標明不是這台裝置的讀數
+- 沒有上傳，沒有覆蓋出廠應用程式
+
+Environment:
+- PlatformIO 6.2.0，espressif32 6.12.0，Arduino-ESP32 2.0.17（framework 3.20017.241212）
+- 板子 m5stick-c，QIO，80 MHz 閃存，240 MHz CPU
+- M5Unified 0.2.26，Adafruit MLX90640 1.1.2，Adafruit BusIO 1.17.4
+- 分割表 partitions.csv 對齊這台備份：nvs、otadata、app0 0x10000/0x300000、spiffs 0x310000/0xF0000
+
+Commands:
+- python -m platformio run -e tlite
+- python test_workstation.py
+
+Observed result:
+編譯成功。RAM 60596 / 327680（18.5%）。Flash 782125 / 3145728（24.9%）。映像裡 efontCN_14 本體約 256 KB。bridge/test_workstation.py 九項通過。沒有執行上傳。
+
+Failures/errors:
+第一次編譯因 Adafruit MLX90640 1.1.2 不再提供全域的 MLX90640_API.h 而失敗。感測器改呼叫同一個類別裡的 DumpEE、GetFrameData、CalculateTo，發射率與反射溫度仍由我們傳入（反射溫度用當下 Ta，不用 Ta−8）。
+
+Diagnosis:
+函式庫把 Melexis 計算收進類別的非公開區。那些函式仍是同一份實作，只是編譯期看不見。
+
+Solution:
+sensor.cpp 在引入標頭時把存取關鍵字打開，只為了呼叫既有方法。沒有改函式庫目錄裡的檔案。
+
+Verification:
+編譯為 BUILD VERIFIED。句子、768 點、蜂鳴、拔線後仍供電，都還沒在這台裝置上跑過，不能標 DEVICE VERIFIED。示範網頁的句子來自橋接程序，不是感測器。
+
+Limitations/follow-up:
+- 上傳前再核對 backup/SHA256SUMS。不要整片擦除。
+- 接上後用 python bridge/server.py，不要加 --demo。
+- 熱哨兵的全黑、整夜、拔掉電腦仍會響，仍待實機。
+

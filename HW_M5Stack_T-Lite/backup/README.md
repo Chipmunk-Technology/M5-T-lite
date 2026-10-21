@@ -4,9 +4,11 @@
 
 ## Status
 
-- Backup taken: **NO — pending as of 2026-10-20.**
-- 這台 T-Lite 當時沒有接在電腦上。沒有映像檔，沒有 SHA-256，沒有已核對的埠名。
-- 在 `SHA256SUMS` 出現、而且 `shasum -a 256 -c SHA256SUMS` 通過之前，不刷寫、不抹除。
+- Backup taken: **YES — 2026-10-20.** `t-lite-full-flash-2026-10-20.bin`，4,194,304 bytes。
+- SHA-256：`8586ab1fdf1f7752cd18bbacd6175ba39580b92f6ac4bf1daef4102c1d66e49c`
+- 埠：COM5。FTDI VID 0403 PID 6001，USB 序號 `655263BD4B`。讀取速率 115200。
+- `flash-id`：ESP32-PICO-D4 revision v1.1，MAC `c8:85:41:68:87:70`，4 MB，3.3 V。這是這台裝置讀到的，證據 `DEVICE VERIFIED`。
+- 在覆蓋應用程式之前仍要先核對 `SHA256SUMS`。不整片擦除，不改 eFuse。
 
 預期的硬體（全部是 `DOCUMENTED`，尚未在這台裝置上讀到）：
 

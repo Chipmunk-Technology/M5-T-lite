@@ -1,0 +1,6 @@
+firmware/tlite-workstation/.pio/
+firmware/tlite-workstation/.vscode/
+bridge/data/
+__pycache__/
+*.pyc
+backup/*.bin

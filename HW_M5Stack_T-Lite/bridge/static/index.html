@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>熱記憶</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <p id="demo" class="demo" hidden>這是示範畫面，不是這台裝置的讀數。</p>
+  <header>
+    <p class="brand">熱記憶</p>
+    <nav class="words" id="works" aria-label="工作">
+      <button data-work="memory" class="on">熱記憶</button>
+      <button data-work="leak">漏熱</button>
+      <button data-work="sentry">哨兵</button>
+    </nav>
+    <nav class="words quiet" id="screens" aria-label="畫面">
+      <button data-screen="now" class="on">現在</button>
+      <button data-screen="compare">對上次</button>
+      <button data-screen="events">事件</button>
+      <button data-screen="report">交出去</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="now">
+      <h1 id="sentence">尚未連接。</h1>
+      <p class="number" id="numberline"><span id="number"></span><span id="unit"></span></p>
+      <canvas id="map" width="256" height="192" aria-label="熱圖"></canvas>
+      <p class="caption">顯示放大 · 32×24</p>
+      <p class="small" id="small"></p>
+      <div id="memory-tools">
+        <input id="name" maxlength="40" placeholder="這是什麼" autocomplete="off">
+        <button id="remember" type="button">記住這一幀</button>
+        <div class="words" id="distances">
+          <button data-distance="near">貼近</button>
+          <button data-distance="hand" class="on">一手距離</button>
+          <button data-distance="room">房間</button>
+        </div>
+        <div class="words" id="materials">
+          <button data-material="plastic" class="on">塑膠</button>
+          <button data-material="painted">塗裝金屬</button>
+          <button data-material="pcb">電路板</button>
+          <button data-material="water">水</button>
+          <button data-material="shiny">光亮金屬</button>
+        </div>
+      </div>
+      <div id="sentry-tools" hidden>
+        <div class="words" id="levels">
+          <button data-sensitivity="0">高</button>
+          <button data-sensitivity="1" class="on">中</button>
+          <button data-sensitivity="2">低</button>
+        </div>
+        <button id="disarm" type="button">結束守候</button>
+        <button id="clearmask" type="button">清除忽略區</button>
+      </div>
+    </section>
+
+    <section id="compare" hidden>
+      <h1 id="compare-sentence"></h1>
+      <div class="pair">
+        <figure>
+          <canvas id="map-now" width="256" height="192"></canvas>
+          <figcaption>這次</figcaption>
+        </figure>
+        <figure>
+          <canvas id="map-last" width="256" height="192"></canvas>
+          <figcaption>上次</figcaption>
+        </figure>
+      </div>
+      <p class="small">把裝置放回上次的位置。</p>
+    </section>
+
+    <section id="events" hidden>
+      <h1>經過</h1>
+      <ul id="event-list"></ul>
+      <canvas id="map-event" width="256" height="192" hidden></canvas>
+      <p class="caption">點一行才看那一幀。</p>
+    </section>
+
+    <section id="report" hidden>
+      <article id="sheet">
+        <h1 id="report-sentence"></h1>
+        <p class="number" id="report-number"></p>
+        <canvas id="map-report" width="256" height="192"></canvas>
+        <p class="caption">顯示放大 · 32×24</p>
+        <p class="small" id="report-small"></p>
+        <p class="actions">
+          <button id="save-pdf" type="button">存成 PDF</button>
+          <a id="save-csv" href="/api/report.csv">存成 CSV</a>
+        </p>
+      </article>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

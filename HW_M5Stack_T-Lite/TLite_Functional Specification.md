@@ -6,7 +6,7 @@ T-Lite 是一支可插在電腦上的熱像筆。感測器是 MLX90640-BAA，32�
 
 接腳只在寫錯會選錯產品時才出現。GPIO 表在 `TLite_AI_Specification.md`。
 
-這裡的硬體句子來自官方產品頁與 Melexis 資料手冊，審查日 2026-10-20，證據等級 **`DOCUMENTED`**。這台裝置還沒接上，沒有 `DEVICE VERIFIED` 的行為。
+這裡的硬體句子來自官方產品頁與 Melexis 資料手冊，審查日 2026-10-20。晶片型號、MAC、4 MB 與備份雜湊已在這台讀到。畫面、溫度與蜂鳴還沒有 `DEVICE VERIFIED`。
 
 ## This Unit
 
@@ -19,7 +19,7 @@ T-Lite 是一支可插在電腦上的熱像筆。感測器是 MLX90640-BAA，32�
 | 電池：T-Lite 頁 160 mAh；StickC-Plus 頁 120 mAh | `DOCUMENTED`，兩頁不一致，待這台實測 |
 | USB-C，5 V / 500 mA，經 USB-UART，不是原生 USB 裝置 | `DOCUMENTED` |
 | 官方韌體可在配好 Wi-Fi 後於區網看 MJPEG 與 JSON | `DOCUMENTED` |
-| 全閃存備份 | 未做。見 `backup/README.md` |
+| 全閃存備份 | 2026-10-20 已讀下，SHA-256 在 `backup/SHA256SUMS`。`DEVICE VERIFIED` 的是晶片與映像雜湊，不是畫面 |
 
 官方韌體同一映像可跑在 StickC Plus 與 Plus SE。Plus SE 沒有板上 IMU。第一版不使用 IMU。
 
@@ -167,7 +167,7 @@ Button A 等於「記住這一幀」。熱哨兵模式下，Button A 不另做�
 
 ## Local Recovery
 
-備份尚未存在。步驟：`backup/README.md`。
+全閃存備份已在 `backup/`。復原步驟：`backup/README.md`。
 
 ## Document Reference Locations
 

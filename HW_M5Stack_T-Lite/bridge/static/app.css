@@ -1,0 +1,135 @@
+:root {
+  color-scheme: light;
+  --paper: #f6f1e8;
+  --ink: #1c1915;
+  --quiet: #6b5e52;
+  --hot: #9a3412;
+  --line: #e4d8c8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif;
+}
+
+header, main {
+  width: min(720px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+header { padding: 28px 0 8px; }
+
+.brand {
+  margin: 0 0 18px;
+  letter-spacing: 0.12em;
+  font-size: 14px;
+}
+
+.demo {
+  margin: 0;
+  padding: 10px 24px;
+  background: #efe2d4;
+  color: var(--hot);
+}
+
+.words { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
+
+.words button, button, .actions a {
+  border: 0;
+  background: transparent;
+  color: var(--quiet);
+  font: inherit;
+  font-size: 16px;
+  padding: 6px 2px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.words button.on { color: var(--ink); border-bottom: 1px solid var(--ink); }
+
+h1 {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 12px 0;
+}
+
+h1.hot { color: var(--hot); }
+
+.number {
+  min-height: 72px;
+  margin: 0 0 8px;
+  font-size: 64px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.number span:last-child { font-size: 28px; margin-left: 8px; }
+
+canvas {
+  width: min(100%, 420px);
+  height: auto;
+  background: #efe6d6;
+  display: block;
+}
+
+canvas.faded { opacity: 0.35; }
+
+.caption, .small, figcaption {
+  color: var(--quiet);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pair canvas { width: 100%; }
+
+input {
+  display: block;
+  width: min(100%, 420px);
+  margin: 12px 0;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 20px;
+}
+
+#remember, #disarm, #clearmask, #save-pdf {
+  display: inline-block;
+  margin: 8px 16px 8px 0;
+  padding: 10px 0;
+  color: var(--ink);
+  font-size: 18px;
+}
+
+ul { list-style: none; padding: 0; margin: 0; }
+li { margin: 0; }
+li button { display: block; width: 100%; text-align: left; padding: 12px 0; border-bottom: 1px solid var(--line); color: var(--ink); }
+
+.actions { margin-top: 20px; }
+
+body.down canvas { opacity: 0.35; }
+
+@media (max-width: 640px) {
+  .pair { grid-template-columns: 1fr; }
+  .number { font-size: 48px; }
+}
+
+@media print {
+  header, .demo, .actions, #memory-tools, #sentry-tools, #now, #compare, #events { display: none !important; }
+  #report { display: block !important; }
+  body { background: white; }
+  main { width: auto; }
+}

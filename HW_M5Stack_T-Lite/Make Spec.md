@@ -19,7 +19,7 @@
 3. 執行 `backup/backup_device.sh`（只讀，不抹除）。
 4. 確認 `backup/SHA256SUMS` 記了新映像。
 
-備份不存在或核對失敗時，停止。裝置還沒接上時，停在這一步，請人接上。截至 2026-10-20，備份未做。
+備份不存在或核對失敗時，停止。2026-10-20 已讀下全閃存，雜湊在 `backup/SHA256SUMS`。之後每次刷寫前仍要核對。
 
 ## Basic Second Step — Characterize the Factory Firmware from the Backup
 

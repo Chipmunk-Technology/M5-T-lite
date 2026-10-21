@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>表面溫度</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <p id="demo" class="demo" hidden>這是示範畫面，不是這台裝置的讀數。</p>
+  <header>
+    <p class="brand">表面溫度</p>
+    <nav class="words">
+      <button type="button" id="tab-spot" class="on">表面溫度</button>
+      <button type="button" id="tab-check">十秒測溫</button>
+    </nav>
+  </header>
+  <main>
+    <section id="spot">
+    <h1 id="sentence">尚未連接。</h1>
+    <p class="number" id="numberline"><span id="number"></span><span id="unit"></span></p>
+    <canvas id="map" width="256" height="192" aria-label="熱圖"></canvas>
+    <p class="caption">顯示放大 · 32×24</p>
+    <p class="small" id="small"></p>
+    <label class="slider" for="sensitivity">靈敏度 <span id="sensitivity-readout">70</span></label>
+    <input id="sensitivity" type="range" min="0" max="100" step="1" value="70" aria-label="靈敏度">
+    <p class="ends"><span>低</span><span>高</span></p>
+    <p class="caption">向右較容易響。流動和熱力改變仍然要一起出現。</p>
+    <label class="slider" for="interval">間隔 <span id="interval-readout">4000</span> ms</label>
+    <input id="interval" type="range" min="0" max="10000" step="100" value="4000" aria-label="間隔">
+    <p class="ends"><span>0</span><span>10000</span></p>
+    <p class="caption">兩聲之間最少相隔這段時間。</p>
+    <button id="clearmask" type="button">清除忽略區</button>
+    <input id="device" maxlength="80" placeholder="裝置位址，例如 192.168.1.20" autocomplete="off">
+    </section>
+    <section id="check" hidden>
+      <h1 id="check-title">按開始，記錄 10 秒。</h1>
+      <p id="check-result" class="check-result"></p>
+      <p id="check-average" class="caption"></p>
+      <button id="measure-start" class="action" type="button">開始</button>
+      <button id="measure-restart" class="action" type="button" hidden>重新開始</button>
+      <table>
+        <thead>
+          <tr><th>日期</th><th>時間</th><th>溫度</th></tr>
+        </thead>
+        <tbody id="measure-rows"></tbody>
+      </table>
+      <p class="caption">每秒一筆，共 10 筆，記的是裝置最高表面溫度。平均超過 36.7°C 會長響 8 秒，否則響 3 聲。這不是體溫計。</p>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
